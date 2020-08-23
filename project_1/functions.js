@@ -1,6 +1,26 @@
 const fs = require('fs')
 const path = require('path')
 
+function composition(...functions) { 
+  return function(valor) {
+    return functions.reduce(async (acc, fn) => {
+      if(Promise.resolve(acc) === acc) { 
+        return fn(await acc)
+      } else {
+        return fn(acc)
+      }
+    }, valor)
+  }
+}
+
+const mergeContent = array => array.join(' ')
+
+const separateTextBy = symbol => {
+  return function(text) {
+    return text.split(symbol)
+  }
+}
+
 function readFolder(pathFolder) {
   return new Promise((resolve, reject) => {
     try {
@@ -28,8 +48,10 @@ function readFiles(paths) {
   return Promise.all(paths.map(path => readFile(path)))
 }
 
-function elementsEndingWith(array, textualPattern) {
-  return array.filter(element => element.endsWith(textualPattern))
+function elementsEndingWith(textualPattern) {
+  return function(array) {
+    return array.filter(element => element.endsWith(textualPattern))
+  }
 }
 
 function removeIfEmpty(array) {
@@ -69,7 +91,6 @@ function sortByNumericAttribute(attr, order = 'desc') {
 
 function groupWords(words) {
   return Object.values(words.reduce((acc, world) => {
-    console.log(acc)
     const myWorld = world.toLowerCase()
     const qtd = acc[myWorld] ? acc[myWorld].qtd + 1 : 1
     acc[myWorld] = { element: myWorld, qtd }
@@ -79,6 +100,7 @@ function groupWords(words) {
 }
 
 module.exports = {
+  composition,
   readFolder,
   readFile,
   readFiles,
@@ -88,5 +110,7 @@ module.exports = {
   removeIfHaveNumber,
   removeSymbols,
   sortByNumericAttribute,
-  groupWords
+  groupWords,
+  mergeContent, 
+  separateTextBy
 }
